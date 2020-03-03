@@ -1,0 +1,7 @@
+---
+siege_remove_distro_version: true
+siege_param_nofollow_url:
+  - {name: "doubleclick", url: "ad.doubleclick.net"}
+  - {name: "pagead2.googlesyndication", url: "pagead2.googlesyndication.com"}
+  - {name: "ads.pubsqrd", url: "ads.pubsqrd.com"}
+  - {name: "ib.adnxs", url: "ib.adnxs.com"}

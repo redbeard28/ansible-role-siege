@@ -1,0 +1,88 @@
+---
+- name: "{{ myansible_prefix_task_name }} remove (distro version)"
+  package:
+    name: siege
+    state: absent
+    purge: true
+  when: siege_remove_distro_version | default("true")
+
+- name: "{{ myansible_prefix_task_name }} remove (distro version)"
+  package:
+    name: "{{ item }}"
+    state: present
+    purge: true
+  with_items:
+    - build-essential
+    - libssl-dev
+  when: siege_remove_distro_version | default("true")
+
+- name: "{{ myansible_prefix_task_name }} State download folder"
+  file:
+    path: "{{ siege_download_path }}"
+    state: directory
+    owner: "{{ ansible_user_id }}"
+    group: "{{ ansible_user_gid }}"
+    mode: 0755
+
+- name: "{{ myansible_prefix_task_name }} download the latest version"
+  get_url:
+    url: "{{ siege_download_url }}"
+    dest: "{{ siege_download_path }}/{{ siege_download_url | basename }}"
+    owner: "{{ ansible_user_id }}"
+    group: "{{ ansible_user_gid }}"
+    mode: 0644
+    force: true
+
+- name: "{{ myansible_prefix_task_name }} create or state build folder"
+  file:
+    path: "{{ siege_build_path }}"
+    state: directory
+    owner: "{{ ansible_user_id }}"
+    group: "{{ ansible_user_gid }}"
+    mode: 0755
+
+- name: "{{ myansible_prefix_task_name }} version check"
+  shell: |
+    set -o pipefail
+    tar -ztf {{ siege_download_path }}/{{ siege_download_url | basename }} | head -n 1
+  changed_when: false
+  register: _version_check
+
+
+- name: "{{ myansible_prefix_task_name }} extract last version downloaded"
+  unarchive:
+    src: "{{ siege_download_path }}/{{ siege_download_url | basename }}"
+    dest: "{{ siege_build_path }}"
+    creates: "{{ siege_build_path }}/{{ _version_check.stdout }}"
+    copy: false
+  register: _result
+
+- name: "{{ myansible_prefix_task_name }} Get openssl fullpath value"
+  shell: which openssl
+  register: openssl_fullpath
+
+- name: "{{ myansible_prefix_task_name }} launch configure cmd"
+  command: ./configure --with-ssl={{ openssl_fullpath.stdout }}
+  args:
+    chdir: "{{ siege_build_path }}/{{ _version_check.stdout }}"
+  when: _result is changed
+
+- name: "{{ myansible_prefix_task_name }} launch make cmd"
+  command: make
+  args:
+    chdir: "{{ siege_build_path }}/{{ _version_check.stdout }}"
+  when: _result is changed
+
+- name: "{{ myansible_prefix_task_name }} launch make install cmd"
+  command: make install
+  args:
+    chdir: "{{ siege_build_path }}/{{ _version_check.stdout }}"
+  when: _result is changed
+
+- name: "{{ myansible_prefix_task_name }}  templating configuration file"
+  template:
+    src: siegerc.j2
+    dest: "{{ '/etc/siegerc' if ansible_lsb.codename in ['lucid', 'squeeze'] else '/usr/local/etc/siegerc' }}"
+    owner: root
+    group: root
+    mode: 0644
