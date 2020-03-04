@@ -42,7 +42,7 @@ siege_param_nofollow_url:
 Dependencies
 ------------
 
-none
+- src: redbeard28.devtools
 
 Example Playbook
 ----------------
@@ -51,7 +51,8 @@ Including an example of how to use your role (for instance, with variables passe
 
     - hosts: all
       roles:
-         - { role: redbeard28.siege, tags: mytags }
+         - { role: redbeard28.devtools, tags: ssl-dev }
+         - { role: redbeard28.siege, tags: benchmark }
 
 
 Molecule testing framework

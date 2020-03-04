@@ -5,5 +5,4 @@
   become: true
 
   roles:
-    - role: bootstrap
-      bootstrap_wait_for_host: true
+    - role: redbeard28.devtools

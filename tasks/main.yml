@@ -6,16 +6,6 @@
     purge: true
   when: siege_remove_distro_version | default("true")
 
-- name: "{{ myansible_prefix_task_name }} remove (distro version)"
-  package:
-    name: "{{ item }}"
-    state: present
-    purge: true
-  with_items:
-    - build-essential
-    - libssl-dev
-  when: siege_remove_distro_version | default("true")
-
 - name: "{{ myansible_prefix_task_name }} State download folder"
   file:
     path: "{{ siege_download_path }}"
